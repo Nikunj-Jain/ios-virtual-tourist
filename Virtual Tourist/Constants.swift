@@ -33,7 +33,7 @@ struct Flickr {
         static let format = "json"
         static let extras = "url_m"
         static let radius = "3"
-        static let perPage = "20"
+        static let perPage = "30"
         static let noJSONCallback = "1"
     }
 }
