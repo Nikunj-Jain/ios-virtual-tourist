@@ -16,7 +16,7 @@ public class FlickrSearch {
         return sharedInstance
     }
     
-    func createURLWithComponents(latitude: Double, longitude: Double) {
+    func createURLWithComponents(latitude latitude: Double, longitude: Double) -> NSURL{
         
         let urlComponents = NSURLComponents()
         urlComponents.scheme = Flickr.scheme
@@ -32,26 +32,27 @@ public class FlickrSearch {
                                     NSURLQueryItem(name: Flickr.Keys.format, value: Flickr.Values.format),
                                     NSURLQueryItem(name: Flickr.Keys.noJSONCallback, value: Flickr.Values.noJSONCallback)]
         
-        let request = NSURLRequest(URL: urlComponents.URL!)
+        return urlComponents.URL!
         
+    }
+    
+    func fetchPhotos(latitude latitude: Double, longitude: Double, fetchPhotosCompletionHandler: (success: Bool, errorString: String?) -> Void) {
+        
+        let queryURL = createURLWithComponents(latitude: latitude, longitude: longitude)
+        let request = NSURLRequest(URL: queryURL)
         let session = NSURLSession.sharedSession()
         let task = session.dataTaskWithRequest(request) { (data, response, error)  in
             
             if error != nil {
-                print("Error 1")
-                return
-            }
-            
-            guard let data = data else {
-                print("Error 2")
+                fetchPhotosCompletionHandler(success: false, errorString: "Could not connect to Flickr. Please check internet connection.")
                 return
             }
             
             let parsedData: AnyObject!
             do {
-                parsedData = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+                parsedData = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
             } catch {
-                print("Error 3")
+                fetchPhotosCompletionHandler(success: false, errorString: "Data from Flickr is corrupted. Please try again.")
                 return
             }
             print(parsedData)

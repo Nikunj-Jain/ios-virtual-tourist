@@ -23,7 +23,7 @@ class PhotoAlbumViewController: UIViewController {
         navigationController?.navigationBarHidden = false
         initialiseMap()
         
-        FlickrSearch.sharedFlickrSearchInstance().createURLWithComponents(coordinates.latitude, longitude: coordinates.longitude)
+        FlickrSearch.sharedFlickrSearchInstance().createURLWithComponents(latitude: coordinates.latitude, longitude: coordinates.longitude)
     }
     
     func initialiseMap() {
