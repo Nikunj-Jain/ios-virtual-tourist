@@ -16,7 +16,7 @@ public class FlickrSearch {
         return sharedInstance
     }
     
-    func createURLWithComponents(latitude latitude: Double, longitude: Double) -> NSURL{
+    private func createURLWithComponents(latitude latitude: Double, longitude: Double) -> NSURL{
         
         let urlComponents = NSURLComponents()
         urlComponents.scheme = Flickr.scheme
