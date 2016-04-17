@@ -69,7 +69,7 @@ public class FlickrSearch {
             var imageArray = [NSData]()
             
             for photoDictionary in photoArray {
-                let url = photoDictionary["url_m"] as! String
+                let url = photoDictionary["url_s"] as! String
                 let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
                 imageArray.append(image)
             }

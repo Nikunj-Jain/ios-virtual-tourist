@@ -31,7 +31,7 @@ struct Flickr {
         static let method = "flickr.photos.search"
         static let APIKey = "0cda9b4059b8847967abe52d22efd6fb"
         static let format = "json"
-        static let extras = "url_m"
+        static let extras = "url_s"
         static let radius = "3"
         static let perPage = "30"
         static let noJSONCallback = "1"
