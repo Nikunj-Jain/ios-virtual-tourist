@@ -36,7 +36,7 @@ public class FlickrSearch {
         
     }
     
-    func fetchPhotos(latitude latitude: Double, longitude: Double, fetchPhotosCompletionHandler: (success: Bool, errorString: String?) -> Void) {
+    func fetchPhotos(latitude latitude: Double, longitude: Double, fetchPhotosCompletionHandler: (success: Bool, errorString: String?, imageArray: [NSData]?) -> Void) {
         
         let queryURL = createURLWithComponents(latitude: latitude, longitude: longitude)
         let request = NSURLRequest(URL: queryURL)
@@ -44,7 +44,7 @@ public class FlickrSearch {
         let task = session.dataTaskWithRequest(request) { (data, response, error)  in
             
             if error != nil {
-                fetchPhotosCompletionHandler(success: false, errorString: "Could not connect to Flickr. Please check internet connection.")
+                fetchPhotosCompletionHandler(success: false, errorString: "Could not connect to Flickr. Please check your internet connection.", imageArray: nil)
                 return
             }
             
@@ -52,10 +52,31 @@ public class FlickrSearch {
             do {
                 parsedData = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
             } catch {
-                fetchPhotosCompletionHandler(success: false, errorString: "Data from Flickr is corrupted. Please try again.")
+                fetchPhotosCompletionHandler(success: false, errorString: "Data received from Flickr is corrupted. Please try again.", imageArray: nil)
                 return
             }
-            print(parsedData)
+            
+            guard let photosDictionary = parsedData["photos"] as? [String: AnyObject] else {
+                fetchPhotosCompletionHandler(success: false, errorString: "Data received from Flickr is corrupted. Please try again.", imageArray: nil)
+                return
+            }
+            
+            guard let photoArray = photosDictionary["photo"] as? [[String: AnyObject]] else {
+                fetchPhotosCompletionHandler(success: false, errorString: "Data received from Flickr is corrupted. Please try again.", imageArray: nil)
+                return
+            }
+            
+            var imageArray = [NSData]()
+            
+            for photoDictionary in photoArray {
+                let url = photoDictionary["url_m"] as! String
+                let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
+                imageArray.append(image)
+            }
+            
+            print("Photos fetched")
+            
+            fetchPhotosCompletionHandler(success: true, errorString: nil, imageArray: imageArray)
         }
         
         task.resume()

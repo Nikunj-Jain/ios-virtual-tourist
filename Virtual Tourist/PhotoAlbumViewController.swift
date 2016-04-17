@@ -16,18 +16,41 @@ class PhotoAlbumViewController: UIViewController {
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var collectionView: UICollectionView!
     
+    private let reuseIdentifier = "photoCell"
     var coordinates = CLLocationCoordinate2D()
+    
+    var sharedContext: NSManagedObjectContext {
+        return CoreDataStackManager.sharedInstance().managedObjectContext
+    }
+    
+    var photos = [UIImage]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.navigationBarHidden = false
         initialiseMap()
         
-        FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: coordinates.latitude, longitude: coordinates.longitude) { (success, errorString) in
+        FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: coordinates.latitude, longitude: coordinates.longitude) { (success, errorString, imageArray) in
             
-            
-            
+            if !success {
+                performUIUpdatesOnMain() {
+                    createAlert(self, message: errorString!)
+                }
+            } else {
+                performUIUpdatesOnMain() {
+                    for image in imageArray! {
+                        let _ = Photo(photo: image, context: self.sharedContext)
+                        self.photos.append(UIImage(data: image)!)
+                        self.collectionView.reloadData()
+                    }
+                    //CoreDataStackManager.sharedInstance().saveContext()
+                }
+            }
         }
+
+    
+        collectionView.delegate = self
+        collectionView.dataSource = self
     }
     
     func initialiseMap() {
@@ -41,4 +64,20 @@ class PhotoAlbumViewController: UIViewController {
         annotation.coordinate = coordinates
         mapView.addAnnotation(annotation)
     }
+}
+
+extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+    
+    func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCell
+        let photo = photos[indexPath.row]
+        cell.imageView.image = photo
+        cell.backgroundColor = UIColor.blackColor()
+        return cell
+    }
+    
+    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return photos.count
+    }
+    
 }
