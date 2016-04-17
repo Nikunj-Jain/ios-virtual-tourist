@@ -72,7 +72,6 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCell
         let photo = photos[indexPath.row]
         cell.imageView.image = photo
-        cell.backgroundColor = UIColor.blackColor()
         return cell
     }
     
@@ -80,4 +79,20 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
         return photos.count
     }
     
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAtIndex section: Int) -> CGFloat {
+        return 1
+    }
+    
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAtIndex section: Int) -> CGFloat {
+        return 2
+    }
+}
+
+extension PhotoAlbumViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
+        var size = collectionView.frame.size
+        size.width = (size.width / 3) - 2
+        size.height = size.width
+        return size
+    }
 }
