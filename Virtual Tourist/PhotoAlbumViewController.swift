@@ -18,9 +18,17 @@ class PhotoAlbumViewController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
     
     private let reuseIdentifier = "photoCell"
-    var coordinates = CLLocationCoordinate2D()
+    var pin: Pin!
     var photos = [UIImage]()
     var size: CGSize!
+    
+    //
+    lazy var fetchedResultsController: NSFetchedResultsController = {
+        let fetchedRequest = NSFetchRequest(entityName: "Photo")
+        fetchedRequest.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchedRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
+        return fetchedResultsController
+    }()
     
     //Shared object context
     var sharedContext: NSManagedObjectContext {
@@ -33,7 +41,7 @@ class PhotoAlbumViewController: UIViewController {
         navigationController?.navigationBarHidden = false
         initialiseMap()
         
-        FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: coordinates.latitude, longitude: coordinates.longitude) { (success, errorString, imageArray) in
+        FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: Double(pin.latitude), longitude: Double(pin.longitude)) { (success, errorString, imageArray) in
             if !success {
                 performUIUpdatesOnMain() {
                     createAlert(self, message: errorString!)
@@ -58,13 +66,13 @@ class PhotoAlbumViewController: UIViewController {
     //Set the map properties
     func initialiseMap() {
         var mapRegion = MKCoordinateRegion()
-        mapRegion.center.latitude = coordinates.latitude
-        mapRegion.center.longitude = coordinates.longitude
+        mapRegion.center.latitude = Double(pin.latitude)
+        mapRegion.center.longitude = Double(pin.longitude)
         mapRegion.span.latitudeDelta = 0.02
         mapRegion.span.longitudeDelta = 0.02
         mapView.region = mapRegion
         let annotation = MKPointAnnotation()
-        annotation.coordinate = coordinates
+        annotation.coordinate = mapRegion.center
         mapView.addAnnotation(annotation)
     }
 }

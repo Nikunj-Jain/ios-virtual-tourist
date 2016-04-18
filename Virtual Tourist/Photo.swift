@@ -12,6 +12,7 @@ import CoreData
 class Photo: NSManagedObject {
     
     @NSManaged var photoData: NSData
+    @NSManaged var belongsToPin: Pin
     
     //Default init method
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {

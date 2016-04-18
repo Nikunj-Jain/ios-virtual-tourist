@@ -119,8 +119,25 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
     
     //Initialise and push PhotoAlbumViewController to the stack
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
+        
+        let fetchRequest = NSFetchRequest(entityName: "Pin")
+        fetchRequest.returnsObjectsAsFaults = false
+        let coordinates = (view.annotation?.coordinate)!
+        let predicate1 = NSPredicate(format: "latitude == %Lf", coordinates.latitude)
+        let predicate2 = NSPredicate(format: "longitude == %Lf", coordinates.longitude)
+        fetchRequest.predicate = NSCompoundPredicate(type: .AndPredicateType, subpredicates: [predicate1, predicate2])
+        
+        var fetchedPin = [Pin]()
+        do {
+            fetchedPin = try sharedContext.executeFetchRequest(fetchRequest) as! [Pin]
+        } catch {
+            createAlert(self, message: "Cant fetch pin")
+            return
+        }
+        
         let vc = storyboard!.instantiateViewControllerWithIdentifier("photoAlbumViewController") as! PhotoAlbumViewController
-        vc.coordinates = (view.annotation?.coordinate)!
+        print(fetchedPin.count)
+        vc.pin = fetchedPin[0]
         navigationController?.pushViewController(vc, animated: true)
     }
 }
