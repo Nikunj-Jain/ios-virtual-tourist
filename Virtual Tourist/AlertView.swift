@@ -12,7 +12,7 @@ func createAlert(viewController: UIViewController, message: String) {
     let alert = UIAlertController(title: "Warning", message: message, preferredStyle: .Alert)
     
     let dismissButton = UIAlertAction(title: "Dismiss", style: .Default) { (action) -> Void in
-        alert.dismissViewControllerAnimated(true, completion: nil)
+        viewController.navigationController?.popToRootViewControllerAnimated(true)
     }
     
     alert.addAction(dismissButton)

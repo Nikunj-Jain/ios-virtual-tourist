@@ -38,12 +38,14 @@ struct Flickr {
         static let noJSONCallback = "1"
         static let photos = "photos"
         static let photo = "photo"
+        static let totalResults = "total"
     }
 }
 
 struct Errors {
     static let corruptData = "Data received from Flickr is corrupted. Please try again."
     static let internetConnection = "Could not connect to Flickr. Please check your internet connection."
+    static let noResults = "No results found. Please try a different place."
 }
 
 struct MapViewKeys {

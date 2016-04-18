@@ -25,6 +25,8 @@ class PhotoAlbumViewController: UIViewController {
     //
     lazy var fetchedResultsController: NSFetchedResultsController = {
         let fetchedRequest = NSFetchRequest(entityName: "Photo")
+        fetchedRequest.sortDescriptors = []
+        fetchedRequest.predicate = NSPredicate(format: "belongsToPin == %@", self.pin)
         let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchedRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
         return fetchedResultsController
     }()
@@ -41,10 +43,17 @@ class PhotoAlbumViewController: UIViewController {
         initialiseMap()
         
         checkAndFetch()
+        
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {
+            createAlert(self, message: "No persistence found.")
+        }
 
         //Set Collection View's delegate and data source
         collectionView.delegate = self
         collectionView.dataSource = self
+        fetchedResultsController.delegate = self
     }
     
     //Fetch new collection from Flickr
@@ -69,21 +78,14 @@ class PhotoAlbumViewController: UIViewController {
     func fetchFromFlickr() {
         print("Starting fetch")
         newCollectionButton.enabled = false
-        FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: Double(pin.latitude), longitude: Double(pin.longitude)) { (success, errorString, imageArray) in
+        FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(pin) { (success, errorString) in
             if !success {
                 performUIUpdatesOnMain() {
                     createAlert(self, message: errorString!)
                 }
             } else {
                 performUIUpdatesOnMain() {
-                    for image in imageArray! {
-                        let photo = Photo(photo: image, context: self.sharedContext)
-                        photo.belongsToPin = self.pin
-                        self.photos.append(UIImage(data: image)!)
-                    }
-                    self.collectionView.reloadData()
                     self.newCollectionButton.enabled = true
-                    CoreDataStackManager.sharedInstance().saveContext()
                 }
             }
         }
@@ -110,16 +112,22 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
     //Set data for each cell
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCell
-        if photos.count > 0 {
-            let photo = photos[indexPath.row]
-            cell.imageView.image = photo
+        if let fetchedObjects = fetchedResultsController.fetchedObjects{
+            if fetchedObjects.count > 0 {
+                let photo = fetchedObjects[indexPath.row] as! Photo
+                cell.imageView.image = UIImage(data: photo.photoData)
+            }
         }
         return cell
     }
     
+    func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
+        return self.fetchedResultsController.sections?.count ?? 0
+    }
+    
     //Count for number of photos
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return photos.count > 0 ? photos.count : 30
+        return fetchedResultsController.sections![section].numberOfObjects
     }
     
     //Minimum horizontal size between cells
@@ -138,5 +146,11 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
         size.width = (size.width / 3) - 2
         size.height = size.width
         return size
+    }
+}
+
+extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+        collectionView.reloadData()
     }
 }
