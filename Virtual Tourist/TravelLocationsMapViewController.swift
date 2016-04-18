@@ -136,7 +136,6 @@ extension TravelLocationsMapViewController: MKMapViewDelegate {
         }
         
         let vc = storyboard!.instantiateViewControllerWithIdentifier("photoAlbumViewController") as! PhotoAlbumViewController
-        print(fetchedPin.count)
         vc.pin = fetchedPin[0]
         navigationController?.pushViewController(vc, animated: true)
     }

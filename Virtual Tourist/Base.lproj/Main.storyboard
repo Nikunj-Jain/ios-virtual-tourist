@@ -93,7 +93,7 @@
                                                     <rect key="frame" x="0.0" y="0.0" width="140" height="141"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
-                                                        <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ws8-OF-r3L">
+                                                        <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="Placeholder" translatesAutoresizingMaskIntoConstraints="NO" id="Ws8-OF-r3L">
                                                             <rect key="frame" x="8" y="8" width="125" height="125"/>
                                                         </imageView>
                                                     </subviews>
@@ -142,4 +142,7 @@
             <point key="canvasLocation" x="1753" y="558"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="Placeholder" width="100" height="100"/>
+    </resources>
 </document>

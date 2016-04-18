@@ -24,7 +24,7 @@ public class FlickrSearch {
         let task = session.dataTaskWithRequest(request) { (data, response, error)  in
             
             if error != nil {
-                fetchPhotosCompletionHandler(success: false, errorString: Flickr.Errors.internetConnection, imageArray: nil)
+                fetchPhotosCompletionHandler(success: false, errorString: Errors.internetConnection, imageArray: nil)
                 return
             }
             
@@ -33,19 +33,19 @@ public class FlickrSearch {
             do {
                 parsedData = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
             } catch {
-                fetchPhotosCompletionHandler(success: false, errorString: Flickr.Errors.corruptData, imageArray: nil)
+                fetchPhotosCompletionHandler(success: false, errorString: Errors.corruptData, imageArray: nil)
                 return
             }
             
             //Extract dictionary of photos
             guard let photosDictionary = parsedData[Flickr.Values.photos] as? [String: AnyObject] else {
-                fetchPhotosCompletionHandler(success: false, errorString: Flickr.Errors.corruptData, imageArray: nil)
+                fetchPhotosCompletionHandler(success: false, errorString: Errors.corruptData, imageArray: nil)
                 return
             }
             
             //Extract the photo array from the dictioctionary of photos
             guard let photoArray = photosDictionary[Flickr.Values.photo] as? [[String: AnyObject]] else {
-                fetchPhotosCompletionHandler(success: false, errorString: Flickr.Errors.corruptData, imageArray: nil)
+                fetchPhotosCompletionHandler(success: false, errorString: Errors.corruptData, imageArray: nil)
                 return
             }
             

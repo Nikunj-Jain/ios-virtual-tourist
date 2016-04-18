@@ -39,11 +39,11 @@ struct Flickr {
         static let photos = "photos"
         static let photo = "photo"
     }
-    
-    struct Errors {
-        static let corruptData = "Data received from Flickr is corrupted. Please try again."
-        static let internetConnection = "Could not connect to Flickr. Please check your internet connection."
-    }
+}
+
+struct Errors {
+    static let corruptData = "Data received from Flickr is corrupted. Please try again."
+    static let internetConnection = "Could not connect to Flickr. Please check your internet connection."
 }
 
 struct MapViewKeys {
