@@ -47,34 +47,47 @@ class PhotoAlbumViewController: UIViewController {
         collectionView.dataSource = self
     }
     
+    //Fetch new collection from Flickr
+    @IBAction func newCollection(sender: UIButton) {
+        fetchFromFlickr()
+    }
+    
+    //Check if images already exist
     func checkAndFetch() {
         if pin.photos?.count == 0 {
-            print("Starting fetch")
-            FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: Double(pin.latitude), longitude: Double(pin.longitude)) { (success, errorString, imageArray) in
-                if !success {
-                    performUIUpdatesOnMain() {
-                        createAlert(self, message: errorString!)
-                    }
-                } else {
-                    performUIUpdatesOnMain() {
-                        for image in imageArray! {
-                            let photo = Photo(photo: image, context: self.sharedContext)
-                            photo.belongsToPin = self.pin
-                            self.photos.append(UIImage(data: image)!)
-                        }
-                        self.collectionView.reloadData()
-                        CoreDataStackManager.sharedInstance().saveContext()
-                    }
-                }
-            }
+            fetchFromFlickr()
         } else if pin.photos?.count > 0{
             photos.removeAll()
             for photo in pin.photos!{
                 photos.append(UIImage(data: photo.photoData)!)
             }
-            print("Reloading")
             collectionView.reloadData()
         }
+    }
+    
+    //Use FlickrSearch class to get images from Flickr's servers
+    func fetchFromFlickr() {
+        print("Starting fetch")
+        newCollectionButton.enabled = false
+        FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: Double(pin.latitude), longitude: Double(pin.longitude)) { (success, errorString, imageArray) in
+            if !success {
+                performUIUpdatesOnMain() {
+                    createAlert(self, message: errorString!)
+                }
+            } else {
+                performUIUpdatesOnMain() {
+                    for image in imageArray! {
+                        let photo = Photo(photo: image, context: self.sharedContext)
+                        photo.belongsToPin = self.pin
+                        self.photos.append(UIImage(data: image)!)
+                    }
+                    self.collectionView.reloadData()
+                    self.newCollectionButton.enabled = true
+                    CoreDataStackManager.sharedInstance().saveContext()
+                }
+            }
+        }
+
     }
     
     //Set the map properties
@@ -97,14 +110,16 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
     //Set data for each cell
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCell
-        let photo = photos[indexPath.row]
-        cell.imageView.image = photo
+        if photos.count > 0 {
+            let photo = photos[indexPath.row]
+            cell.imageView.image = photo
+        }
         return cell
     }
     
     //Count for number of photos
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return photos.count
+        return photos.count > 0 ? photos.count : 30
     }
     
     //Minimum horizontal size between cells

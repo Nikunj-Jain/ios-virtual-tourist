@@ -54,6 +54,7 @@ public class FlickrSearch {
             //Extract all photos from the photoArray
             for photoDictionary in photoArray {
                 let url = photoDictionary[Flickr.Values.extras] as! String
+                print(url)
                 let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
                 imageArray.append(image)
             }
