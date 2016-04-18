@@ -25,7 +25,6 @@ class PhotoAlbumViewController: UIViewController {
     //
     lazy var fetchedResultsController: NSFetchedResultsController = {
         let fetchedRequest = NSFetchRequest(entityName: "Photo")
-        fetchedRequest.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
         let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchedRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
         return fetchedResultsController
     }()
@@ -41,26 +40,41 @@ class PhotoAlbumViewController: UIViewController {
         navigationController?.navigationBarHidden = false
         initialiseMap()
         
-        FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: Double(pin.latitude), longitude: Double(pin.longitude)) { (success, errorString, imageArray) in
-            if !success {
-                performUIUpdatesOnMain() {
-                    createAlert(self, message: errorString!)
-                }
-            } else {
-                performUIUpdatesOnMain() {
-                    for image in imageArray! {
-                        let _ = Photo(photo: image, context: self.sharedContext)
-                        self.photos.append(UIImage(data: image)!)
-                        self.collectionView.reloadData()
-                    }
-                    //CoreDataStackManager.sharedInstance().saveContext()
-                }
-            }
-        }
+        checkAndFetch()
 
         //Set Collection View's delegate and data source
         collectionView.delegate = self
         collectionView.dataSource = self
+    }
+    
+    func checkAndFetch() {
+        if pin.photos?.count == 0 {
+            print("Starting fetch")
+            FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: Double(pin.latitude), longitude: Double(pin.longitude)) { (success, errorString, imageArray) in
+                if !success {
+                    performUIUpdatesOnMain() {
+                        createAlert(self, message: errorString!)
+                    }
+                } else {
+                    performUIUpdatesOnMain() {
+                        for image in imageArray! {
+                            let photo = Photo(photo: image, context: self.sharedContext)
+                            photo.belongsToPin = self.pin
+                            self.photos.append(UIImage(data: image)!)
+                        }
+                        self.collectionView.reloadData()
+                        CoreDataStackManager.sharedInstance().saveContext()
+                    }
+                }
+            }
+        } else if pin.photos?.count > 0{
+            photos.removeAll()
+            for photo in pin.photos!{
+                photos.append(UIImage(data: photo.photoData)!)
+            }
+            print("Reloading")
+            collectionView.reloadData()
+        }
     }
     
     //Set the map properties
