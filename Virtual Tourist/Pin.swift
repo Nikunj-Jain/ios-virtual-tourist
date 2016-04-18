@@ -14,20 +14,21 @@ class Pin: NSManagedObject {
     @NSManaged var latitude: NSNumber
     @NSManaged var longitude: NSNumber
     
+    //Default init method
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
     }
     
+    //Custom init method with annotation object
     init(annotation: MKPointAnnotation, context: NSManagedObjectContext) {
-        
         let entity = NSEntityDescription.entityForName("Pin", inManagedObjectContext: context)!
         super.init(entity: entity, insertIntoManagedObjectContext: context)
         
         latitude = NSNumber(double: annotation.coordinate.latitude)
         longitude = NSNumber(double: annotation.coordinate.longitude)
-        
     }
     
+    //Get annotation from coordinates
     func getAnnotation() -> MKPointAnnotation{
         let coordinate = CLLocationCoordinate2D(latitude: Double(latitude), longitude: Double(longitude))
         let annotation = MKPointAnnotation()

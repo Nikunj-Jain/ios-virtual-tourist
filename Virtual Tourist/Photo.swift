@@ -13,10 +13,12 @@ class Photo: NSManagedObject {
     
     @NSManaged var photoData: NSData
     
+    //Default init method
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
     }
     
+    //Custom init method with photo object.
     init (photo: NSData, context: NSManagedObjectContext) {
         let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: context)!
         super.init(entity: entity, insertIntoManagedObjectContext: context)

@@ -10,15 +10,14 @@ import UIKit
 import MapKit
 import CoreData
 
-class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
+class TravelLocationsMapViewController: UIViewController {
     
-    let mapViewCenterLatitudeKey = "mapViewCenterLatitude"
-    let mapViewCenterLongitudeKey = "mapViewCenterLongitude"
-    let mapViewLatitudeDeltaKey = "mapViewLatitudeDelta"
-    let mapViewLongitudeDeltaKey = "mapViewLongitudeDelta"
+    private let reuseID = "pin"
 
+    //MapView outlet
     @IBOutlet weak var mapView: MKMapView!
     
+    //Shared object context
     var sharedContext: NSManagedObjectContext {
         return CoreDataStackManager.sharedInstance().managedObjectContext
     }
@@ -38,45 +37,22 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
         loadMap()
     }
     
-    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        saveMap()
-    }
-    
-    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
-        let reuseID = "pin"
-        
-        var pinView = mapView.dequeueReusableAnnotationViewWithIdentifier(reuseID) as? MKPinAnnotationView
-        
-        if pinView == nil {
-            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseID)
-            pinView!.canShowCallout = false
-            pinView!.pinTintColor = UIColor.redColor()
-        } else {
-            pinView!.annotation = annotation
-        }
-        
-        return pinView
-    }
-    
-    // Function to handle long press action to add Pin
+    // Handle long press action to add Pin
     func handleLongPress(gestureRecogniser: UIGestureRecognizer) {
         if gestureRecogniser.state != .Began { return }
         
         let touchPoint = gestureRecogniser.locationInView(mapView)
         let mapCoordinate = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
-        
         let annotation = MKPointAnnotation()
         annotation.coordinate = mapCoordinate
         
         let _ = Pin(annotation: annotation, context: sharedContext)
-        
-        mapView.addAnnotation(annotation)
-        
         CoreDataStackManager.sharedInstance().saveContext()
         
-        
+        mapView.addAnnotation(annotation)
     }
     
+    //Fetch the persisted Annotations
     func fetchAnnotations() -> [MKPointAnnotation]?{
         let fetchRequest = NSFetchRequest(entityName: "Pin")
         fetchRequest.returnsObjectsAsFaults = false
@@ -92,33 +68,59 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
-        let vc = storyboard!.instantiateViewControllerWithIdentifier("photoAlbumViewController") as! PhotoAlbumViewController
-        vc.coordinates = (view.annotation?.coordinate)!
-        navigationController?.pushViewController(vc, animated: true)
-    }
-    
+    //Save map state to disk
     func saveMap() {
         let defaults = NSUserDefaults.standardUserDefaults()
-        defaults.setDouble(mapView.region.center.latitude, forKey: mapViewCenterLatitudeKey)
-        defaults.setDouble(mapView.region.center.longitude, forKey: mapViewCenterLongitudeKey)
-        defaults.setDouble(mapView.region.span.latitudeDelta, forKey: mapViewLatitudeDeltaKey)
-        defaults.setDouble(mapView.region.span.longitudeDelta, forKey: mapViewLongitudeDeltaKey)
+        defaults.setDouble(mapView.region.center.latitude, forKey: MapViewKeys.LatitudeKey)
+        defaults.setDouble(mapView.region.center.longitude, forKey: MapViewKeys.LongitudeKey)
+        defaults.setDouble(mapView.region.span.latitudeDelta, forKey: MapViewKeys.LatitudeDeltaKey)
+        defaults.setDouble(mapView.region.span.longitudeDelta, forKey: MapViewKeys.LongitudeDeltaKey)
     }
     
+    //Load map state from disk
     func loadMap() {
         let defaults = NSUserDefaults.standardUserDefaults()
-        if defaults.valueForKey(mapViewCenterLatitudeKey) != nil {
+        if defaults.valueForKey(MapViewKeys.LatitudeKey) != nil {
             var newRegion = MKCoordinateRegion()
-            newRegion.center.latitude = defaults.doubleForKey(mapViewCenterLatitudeKey)
-            newRegion.center.longitude = defaults.doubleForKey(mapViewCenterLongitudeKey)
-            newRegion.span.latitudeDelta = defaults.doubleForKey(mapViewLatitudeDeltaKey)
-            newRegion.span.longitudeDelta = defaults.doubleForKey(mapViewLongitudeDeltaKey)
+            newRegion.center.latitude = defaults.doubleForKey(MapViewKeys.LatitudeKey)
+            newRegion.center.longitude = defaults.doubleForKey(MapViewKeys.LongitudeKey)
+            newRegion.span.latitudeDelta = defaults.doubleForKey(MapViewKeys.LatitudeDeltaKey)
+            newRegion.span.longitudeDelta = defaults.doubleForKey(MapViewKeys.LongitudeDeltaKey)
             mapView.setRegion(newRegion, animated: true)
         }
         
         if let annotations = fetchAnnotations() {
             mapView.addAnnotations(annotations)
         }
+    }
+}
+
+//Delegate implementation for Map View
+extension TravelLocationsMapViewController: MKMapViewDelegate {
+    
+    //Save map whenever region is changed.
+    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        saveMap()
+    }
+    
+    //View for annotations
+    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+        var pinView = mapView.dequeueReusableAnnotationViewWithIdentifier(reuseID) as? MKPinAnnotationView
+        
+        if pinView == nil {
+            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseID)
+            pinView!.canShowCallout = false
+            pinView!.pinTintColor = UIColor.redColor()
+        } else {
+            pinView!.annotation = annotation
+        }
+        return pinView
+    }
+    
+    //Initialise and push PhotoAlbumViewController to the stack
+    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
+        let vc = storyboard!.instantiateViewControllerWithIdentifier("photoAlbumViewController") as! PhotoAlbumViewController
+        vc.coordinates = (view.annotation?.coordinate)!
+        navigationController?.pushViewController(vc, animated: true)
     }
 }

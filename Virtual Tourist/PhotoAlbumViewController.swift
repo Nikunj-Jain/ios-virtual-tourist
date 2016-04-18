@@ -12,26 +12,28 @@ import CoreData
 
 class PhotoAlbumViewController: UIViewController {
     
+    //View items
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var collectionView: UICollectionView!
     
     private let reuseIdentifier = "photoCell"
     var coordinates = CLLocationCoordinate2D()
+    var photos = [UIImage]()
+    var size: CGSize!
     
+    //Shared object context
     var sharedContext: NSManagedObjectContext {
         return CoreDataStackManager.sharedInstance().managedObjectContext
     }
     
-    var photos = [UIImage]()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         navigationController?.navigationBarHidden = false
         initialiseMap()
         
         FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(latitude: coordinates.latitude, longitude: coordinates.longitude) { (success, errorString, imageArray) in
-            
             if !success {
                 performUIUpdatesOnMain() {
                     createAlert(self, message: errorString!)
@@ -48,11 +50,12 @@ class PhotoAlbumViewController: UIViewController {
             }
         }
 
-    
+        //Set Collection View's delegate and data source
         collectionView.delegate = self
         collectionView.dataSource = self
     }
     
+    //Set the map properties
     func initialiseMap() {
         var mapRegion = MKCoordinateRegion()
         mapRegion.center.latitude = coordinates.latitude
@@ -66,8 +69,10 @@ class PhotoAlbumViewController: UIViewController {
     }
 }
 
+//Data source and delegate implementation for the Collection View
 extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     
+    //Set data for each cell
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCell
         let photo = photos[indexPath.row]
@@ -75,22 +80,24 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
         return cell
     }
     
+    //Count for number of photos
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return photos.count
     }
     
+    //Minimum horizontal size between cells
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAtIndex section: Int) -> CGFloat {
         return 1
     }
     
+    //Minimum vertical size between cells
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAtIndex section: Int) -> CGFloat {
         return 2
     }
-}
-
-extension PhotoAlbumViewController: UICollectionViewDelegateFlowLayout {
+    
+    //Cell size for each cell
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        var size = collectionView.frame.size
+        size = collectionView.frame.size
         size.width = (size.width / 3) - 2
         size.height = size.width
         return size

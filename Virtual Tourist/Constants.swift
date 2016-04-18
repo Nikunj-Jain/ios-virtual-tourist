@@ -8,6 +8,7 @@
 
 import Foundation
 
+//Various Flickr constants.
 struct Flickr {
     
     static let scheme = "https"
@@ -35,5 +36,19 @@ struct Flickr {
         static let radius = "3"
         static let perPage = "30"
         static let noJSONCallback = "1"
+        static let photos = "photos"
+        static let photo = "photo"
     }
+    
+    struct Errors {
+        static let corruptData = "Data received from Flickr is corrupted. Please try again."
+        static let internetConnection = "Could not connect to Flickr. Please check your internet connection."
+    }
+}
+
+struct MapViewKeys {
+    static let LatitudeKey = "mapViewCenterLatitude"
+    static let LongitudeKey = "mapViewCenterLongitude"
+    static let LatitudeDeltaKey = "mapViewLatitudeDelta"
+    static let LongitudeDeltaKey = "mapViewLongitudeDelta"
 }
