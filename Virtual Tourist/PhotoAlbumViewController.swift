@@ -21,6 +21,7 @@ class PhotoAlbumViewController: UIViewController {
     var pin: Pin!
     var photos = [UIImage]()
     var size: CGSize!
+    var insertedIndexPaths: [NSIndexPath]!
     
     //
     lazy var fetchedResultsController: NSFetchedResultsController = {
@@ -122,12 +123,13 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
     }
     
     func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
-        return self.fetchedResultsController.sections?.count ?? 0
+        return 1
     }
     
     //Count for number of photos
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return fetchedResultsController.sections![section].numberOfObjects
+        //return fetchedResultsController.sections![section].numberOfObjects
+        return 30
     }
     
     //Minimum horizontal size between cells
@@ -150,7 +152,25 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
 }
 
 extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
+    func controllerWillChangeContent(controller: NSFetchedResultsController) {
+       insertedIndexPaths = [NSIndexPath]()
+    }
+    
+    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+        switch type {
+        case .Insert:
+            insertedIndexPaths.append(newIndexPath!)
+            break
+        default:
+            break
+        }
+    }
+    
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
-        collectionView.reloadData()
+        collectionView.performBatchUpdates({ () -> Void in
+            for indexPath in self.insertedIndexPaths {
+                self.collectionView.reloadItemsAtIndexPaths([indexPath])
+            }
+        }, completion: nil)
     }
 }
