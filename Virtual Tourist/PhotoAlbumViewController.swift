@@ -19,9 +19,11 @@ class PhotoAlbumViewController: UIViewController {
     
     private let reuseIdentifier = "photoCell"
     var pin: Pin!
-    var photos = [UIImage]()
     var size: CGSize!
+    
     var insertedIndexPaths: [NSIndexPath]!
+    var deletedIndexPaths: [NSIndexPath]!
+    var updatedIndexPaths: [NSIndexPath]!
     
     //
     lazy var fetchedResultsController: NSFetchedResultsController = {
@@ -67,10 +69,6 @@ class PhotoAlbumViewController: UIViewController {
         if pin.photos?.count == 0 {
             fetchFromFlickr()
         } else if pin.photos?.count > 0{
-            photos.removeAll()
-            for photo in pin.photos!{
-                photos.append(UIImage(data: photo.photoData)!)
-            }
             collectionView.reloadData()
         }
     }
@@ -116,20 +114,27 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
         if let fetchedObjects = fetchedResultsController.fetchedObjects{
             if fetchedObjects.count > 0 {
                 let photo = fetchedObjects[indexPath.row] as! Photo
-                cell.imageView.image = UIImage(data: photo.photoData)
+                if photo.photoData != nil {
+                    cell.imageView.image = UIImage(data: photo.photoData!)
+                }
             }
         }
         return cell
     }
     
+    func collectionView(collectionView: UICollectionView, didDeselectItemAtIndexPath indexPath: NSIndexPath) {
+        let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
+        sharedContext.deleteObject(photo)
+        CoreDataStackManager.sharedInstance().saveContext()
+    }
+    
     func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
-        return 1
+        return self.fetchedResultsController.sections?.count ?? 0
     }
     
     //Count for number of photos
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        //return fetchedResultsController.sections![section].numberOfObjects
-        return 30
+        return (fetchedResultsController.fetchedObjects?.count)!
     }
     
     //Minimum horizontal size between cells
@@ -153,13 +158,27 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
 
 extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
-       insertedIndexPaths = [NSIndexPath]()
+
+        insertedIndexPaths = [NSIndexPath]()
+        deletedIndexPaths = [NSIndexPath]()
+        updatedIndexPaths = [NSIndexPath]()
+        
     }
     
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
-        switch type {
+        switch type{
+            
         case .Insert:
+            print("Insert an item")
             insertedIndexPaths.append(newIndexPath!)
+            break
+        case .Delete:
+            print("Delete an item")
+            deletedIndexPaths.append(indexPath!)
+            break
+        case .Update:
+            print("Update an item.")
+            updatedIndexPaths.append(indexPath!)
             break
         default:
             break
@@ -167,10 +186,21 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     }
     
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
-        collectionView.performBatchUpdates({ () -> Void in
+        
+        collectionView.performBatchUpdates({() -> Void in
+            
             for indexPath in self.insertedIndexPaths {
+                self.collectionView.insertItemsAtIndexPaths([indexPath])
+            }
+            
+            for indexPath in self.deletedIndexPaths {
+                self.collectionView.deleteItemsAtIndexPaths([indexPath])
+            }
+            
+            for indexPath in self.updatedIndexPaths {
                 self.collectionView.reloadItemsAtIndexPaths([indexPath])
             }
+            
         }, completion: nil)
     }
 }

@@ -11,7 +11,7 @@ import CoreData
 
 class Photo: NSManagedObject {
     
-    @NSManaged var photoData: NSData
+    @NSManaged var photoData: NSData?
     @NSManaged var belongsToPin: Pin
     
     //Default init method
@@ -20,7 +20,7 @@ class Photo: NSManagedObject {
     }
     
     //Custom init method with photo object.
-    init (photo: NSData, context: NSManagedObjectContext) {
+    init (photo: NSData?, context: NSManagedObjectContext) {
         let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: context)!
         super.init(entity: entity, insertIntoManagedObjectContext: context)
         

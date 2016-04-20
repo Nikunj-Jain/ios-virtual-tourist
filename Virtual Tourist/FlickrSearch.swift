@@ -59,19 +59,29 @@ public class FlickrSearch {
                 return
             }
             
-            //Extract all photos from the photoArray
-            for photoDictionary in photoArray {
-                let url = photoDictionary[Flickr.Values.extras] as! String
-                let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
-                let photo = Photo(photo: image, context: self.sharedContext)
-                photo.belongsToPin = pin
-                
-                performUIUpdatesOnMain() {
+            var localArray = [Photo]()
+            var i = 0
+            
+            performUIUpdatesOnMain() {
+                pin.photos = nil
+                print(pin)
+                for _ in photoArray {
+                    let photo = Photo(photo: nil, context: self.sharedContext)
+                    photo.belongsToPin = pin
+                    localArray.append(photo)
+                }
+                CoreDataStackManager.sharedInstance().saveContext()
+                for photoDictionary in photoArray {
+                    let url = photoDictionary[Flickr.Values.extras] as! String
+                    let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
+                    localArray[i].photoData = image
+                    i += 1
                     CoreDataStackManager.sharedInstance().saveContext()
                 }
+                print(i)
+                print("Photos fetched")
+                fetchPhotosCompletionHandler(success: true, errorString: nil)
             }
-            print("Photos fetched")
-            fetchPhotosCompletionHandler(success: true, errorString: nil)
         }
         task.resume()
     }
