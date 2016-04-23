@@ -22,6 +22,8 @@ class TravelLocationsMapViewController: UIViewController {
         return CoreDataStackManager.sharedInstance().managedObjectContext
     }
     
+    
+    //View lifecycle methods
     override func viewDidLoad() {
         super.viewDidLoad()
         

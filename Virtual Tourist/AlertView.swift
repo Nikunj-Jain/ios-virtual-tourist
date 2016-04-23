@@ -8,6 +8,7 @@
 
 import UIKit
 
+//Helper method to create and AlertView
 func createAlert(viewController: UIViewController, message: String) {
     let alert = UIAlertController(title: "Warning", message: message, preferredStyle: .Alert)
     

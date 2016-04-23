@@ -21,11 +21,12 @@ class PhotoAlbumViewController: UIViewController {
     var pin: Pin!
     var size: CGSize!
     
+    //Variables to keep track of changes in Core Data
     var insertedIndexPaths: [NSIndexPath]!
     var deletedIndexPaths: [NSIndexPath]!
     var updatedIndexPaths: [NSIndexPath]!
     
-    //
+    //NSFetchedResultsController to get fetched results from CoreData
     lazy var fetchedResultsController: NSFetchedResultsController = {
         let fetchedRequest = NSFetchRequest(entityName: "Photo")
         fetchedRequest.sortDescriptors = []
@@ -39,6 +40,7 @@ class PhotoAlbumViewController: UIViewController {
         return CoreDataStackManager.sharedInstance().managedObjectContext
     }
     
+    //View lifecycle method
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -75,7 +77,6 @@ class PhotoAlbumViewController: UIViewController {
     
     //Use FlickrSearch class to get images from Flickr's servers
     func fetchFromFlickr() {
-        print("Starting fetch")
         newCollectionButton.enabled = false
         FlickrSearch.sharedFlickrSearchInstance().fetchPhotos(pin) { (success, errorString) in
             if !success {
@@ -110,23 +111,19 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
     //Set data for each cell
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCell
-//        if let fetchedObjects = fetchedResultsController.fetchedObjects{
-//            if fetchedObjects.count > 0 {
-//                let photo = fetchedObjects[indexPath.row] as! Photo
-//                cell.setPictureForCell(photo)
-//            }
-//        }
         let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
         cell.setPictureForCell(photo)
         return cell
     }
     
+    //Implementation for deleting tapped photo.
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
         sharedContext.deleteObject(photo)
         CoreDataStackManager.sharedInstance().saveContext()
     }
     
+    //Return number of sections
     func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
         return self.fetchedResultsController.sections?.count ?? 0
     }
@@ -153,14 +150,21 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
     
     //Cell size for each cell
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        size = collectionView.frame.size
-        size.width = (size.width / 3) - 2
-        size.height = size.width
-        return size
+        if let size = size {
+            return size
+        } else {
+            size = collectionView.frame.size
+            size.width = (size.width / 3) - 2
+            size.height = size.width
+            return size;
+        }
     }
 }
 
+//Delegate implementation for NSFetchedResultsController
 extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
+    
+    //Content will be changed
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
 
         insertedIndexPaths = [NSIndexPath]()
@@ -169,19 +173,17 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         
     }
     
+    //Object changed at indexPath
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
         switch type{
             
         case .Insert:
-            print("Insert an item")
             insertedIndexPaths.append(newIndexPath!)
             break
         case .Delete:
-            print("Delete an item")
             deletedIndexPaths.append(indexPath!)
             break
         case .Update:
-            print("Update an item.")
             updatedIndexPaths.append(indexPath!)
             break
         default:
@@ -189,6 +191,7 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         }
     }
     
+    //Content did change
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
         
         collectionView.performBatchUpdates({() -> Void in

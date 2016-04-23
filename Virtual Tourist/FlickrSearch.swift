@@ -62,17 +62,20 @@ public class FlickrSearch {
             pin.photos = nil
             var localArray = [Photo]()
             var i = 0
+            
+            //Create Photo objects
             for _ in photoArray {
                 let photo = Photo(photo: nil, context: self.sharedContext)
                 photo.belongsToPin = pin
                 localArray.append(photo)
             }
             
+            //Store Photo objects
             performUIUpdatesOnMain() {
                 CoreDataStackManager.sharedInstance().saveContext()
             }
             
-            
+            //Update and store Photo objects
             for photoDictionary in photoArray {
                 let url = photoDictionary[Flickr.Values.extras] as! String
                 let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
@@ -82,7 +85,6 @@ public class FlickrSearch {
                     CoreDataStackManager.sharedInstance().saveContext()
                 }
             }
-            print("Photos fetched")
             fetchPhotosCompletionHandler(success: true, errorString: nil)
         }
         task.resume()
@@ -111,7 +113,6 @@ public class FlickrSearch {
             NSURLQueryItem(name: Flickr.Keys.noJSONCallback, value: Flickr.Values.noJSONCallback),
             NSURLQueryItem(name: Flickr.Keys.sort, value: sortBy)]
         
-        print(urlComponents.URL!)
         return urlComponents.URL!
     }
 }

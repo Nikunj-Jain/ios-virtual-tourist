@@ -12,6 +12,7 @@ class PhotoCell: UICollectionViewCell {
 
     @IBOutlet weak var imageView: UIImageView!
     
+    //Configure the image in cell
     func setPictureForCell(picture: Photo) {
         if let picturesImage = picture.photoData {
             imageView.image = UIImage(data: picturesImage)
