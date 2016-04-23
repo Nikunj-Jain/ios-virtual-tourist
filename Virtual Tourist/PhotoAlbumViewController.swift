@@ -114,15 +114,13 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
         if let fetchedObjects = fetchedResultsController.fetchedObjects{
             if fetchedObjects.count > 0 {
                 let photo = fetchedObjects[indexPath.row] as! Photo
-                if photo.photoData != nil {
-                    cell.imageView.image = UIImage(data: photo.photoData!)
-                }
+                cell.setPictureForCell(photo)
             }
         }
         return cell
     }
     
-    func collectionView(collectionView: UICollectionView, didDeselectItemAtIndexPath indexPath: NSIndexPath) {
+    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
         sharedContext.deleteObject(photo)
         CoreDataStackManager.sharedInstance().saveContext()

@@ -12,4 +12,13 @@ class PhotoCell: UICollectionViewCell {
 
     @IBOutlet weak var imageView: UIImageView!
     
+    func setPictureForCell(picture: Photo) {
+        if let picturesImage = picture.photoData {
+            imageView.image = UIImage(data: picturesImage)
+            self.userInteractionEnabled = true
+        } else {
+            imageView.image = UIImage(named: "Placeholder")
+            self.userInteractionEnabled = false
+        }
+    }
 }
