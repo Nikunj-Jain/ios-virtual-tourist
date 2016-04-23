@@ -59,29 +59,31 @@ public class FlickrSearch {
                 return
             }
             
+            pin.photos = nil
             var localArray = [Photo]()
             var i = 0
+            for _ in photoArray {
+                let photo = Photo(photo: nil, context: self.sharedContext)
+                photo.belongsToPin = pin
+                localArray.append(photo)
+            }
             
             performUIUpdatesOnMain() {
-                pin.photos = nil
-                print(pin)
-                for _ in photoArray {
-                    let photo = Photo(photo: nil, context: self.sharedContext)
-                    photo.belongsToPin = pin
-                    localArray.append(photo)
-                }
                 CoreDataStackManager.sharedInstance().saveContext()
-                for photoDictionary in photoArray {
-                    let url = photoDictionary[Flickr.Values.extras] as! String
-                    let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
-                    localArray[i].photoData = image
-                    i += 1
+            }
+            
+            
+            for photoDictionary in photoArray {
+                let url = photoDictionary[Flickr.Values.extras] as! String
+                let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
+                localArray[i].photoData = image
+                i += 1
+                performUIUpdatesOnMain() {
                     CoreDataStackManager.sharedInstance().saveContext()
                 }
-                print(i)
-                print("Photos fetched")
-                fetchPhotosCompletionHandler(success: true, errorString: nil)
             }
+            print("Photos fetched")
+            fetchPhotosCompletionHandler(success: true, errorString: nil)
         }
         task.resume()
     }
@@ -93,6 +95,10 @@ public class FlickrSearch {
         urlComponents.host = Flickr.host
         urlComponents.path = Flickr.path
         
+        //For a more RANDOM experience
+        let possibleSorts = ["date-posted-desc", "date-posted-asc", "date-taken-desc", "date-taken-asc", "interstingness-desc", "interestingness-asc"]
+        let sortBy = possibleSorts[Int((arc4random_uniform(UInt32(possibleSorts.count))))]
+        
         //Add parameters to the URL
         urlComponents.queryItems = [NSURLQueryItem(name: Flickr.Keys.method, value: Flickr.Values.method),
             NSURLQueryItem(name: Flickr.Keys.APIKey, value: Flickr.Values.APIKey),
@@ -102,7 +108,9 @@ public class FlickrSearch {
             NSURLQueryItem(name: Flickr.Keys.perPage, value: Flickr.Values.perPage),
             NSURLQueryItem(name: Flickr.Keys.extras, value: Flickr.Values.extras),
             NSURLQueryItem(name: Flickr.Keys.format, value: Flickr.Values.format),
-            NSURLQueryItem(name: Flickr.Keys.noJSONCallback, value: Flickr.Values.noJSONCallback)]
+            NSURLQueryItem(name: Flickr.Keys.noJSONCallback, value: Flickr.Values.noJSONCallback),
+            NSURLQueryItem(name: Flickr.Keys.sort, value: sortBy)]
+        
         print(urlComponents.URL!)
         return urlComponents.URL!
     }

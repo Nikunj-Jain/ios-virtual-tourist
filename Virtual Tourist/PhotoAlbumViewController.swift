@@ -43,20 +43,20 @@ class PhotoAlbumViewController: UIViewController {
         super.viewDidLoad()
         
         navigationController?.navigationBarHidden = false
-        initialiseMap()
-        
-        checkAndFetch()
         
         do {
             try fetchedResultsController.performFetch()
         } catch {
             createAlert(self, message: "No persistence found.")
         }
-
+        
         //Set Collection View's delegate and data source
         collectionView.delegate = self
         collectionView.dataSource = self
         fetchedResultsController.delegate = self
+        
+        initialiseMap()
+        checkAndFetch()
     }
     
     //Fetch new collection from Flickr
@@ -88,7 +88,6 @@ class PhotoAlbumViewController: UIViewController {
                 }
             }
         }
-
     }
     
     //Set the map properties
@@ -111,12 +110,14 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
     //Set data for each cell
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCell
-        if let fetchedObjects = fetchedResultsController.fetchedObjects{
-            if fetchedObjects.count > 0 {
-                let photo = fetchedObjects[indexPath.row] as! Photo
-                cell.setPictureForCell(photo)
-            }
-        }
+//        if let fetchedObjects = fetchedResultsController.fetchedObjects{
+//            if fetchedObjects.count > 0 {
+//                let photo = fetchedObjects[indexPath.row] as! Photo
+//                cell.setPictureForCell(photo)
+//            }
+//        }
+        let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photo
+        cell.setPictureForCell(photo)
         return cell
     }
     
@@ -132,7 +133,12 @@ extension PhotoAlbumViewController: UICollectionViewDataSource, UICollectionView
     
     //Count for number of photos
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return (fetchedResultsController.fetchedObjects?.count)!
+        //return (fetchedResultsController.fetchedObjects?.count)!
+        if let sections = fetchedResultsController.sections {
+            let currentSection = sections[section]
+            return currentSection.numberOfObjects
+        }
+        return 0
     }
     
     //Minimum horizontal size between cells
