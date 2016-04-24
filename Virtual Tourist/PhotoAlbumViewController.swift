@@ -28,10 +28,10 @@ class PhotoAlbumViewController: UIViewController {
     
     //NSFetchedResultsController to get fetched results from CoreData
     lazy var fetchedResultsController: NSFetchedResultsController = {
-        let fetchedRequest = NSFetchRequest(entityName: "Photo")
-        fetchedRequest.sortDescriptors = []
-        fetchedRequest.predicate = NSPredicate(format: "belongsToPin == %@", self.pin)
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchedRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
+        let fetchRequest = NSFetchRequest(entityName: "Photo")
+        fetchRequest.sortDescriptors = []
+        fetchRequest.predicate = NSPredicate(format: "belongsToPin == %@", self.pin)
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
         return fetchedResultsController
     }()
     
@@ -61,8 +61,19 @@ class PhotoAlbumViewController: UIViewController {
         checkAndFetch()
     }
     
-    //Fetch new collection from Flickr
+    //Delete old collection and fetch new collection from Flickr
     @IBAction func newCollection(sender: UIButton) {
+        if let photos = fetchedResultsController.fetchedObjects {
+            if photos.count > 0 {
+                var i = photos.count - 1
+                while i >= 0 {
+                    let photo = photos[i] as! Photo
+                    sharedContext.deleteObject(photo)
+                    i--
+                }
+                CoreDataStackManager.sharedInstance().saveContext()
+            }
+        }
         fetchFromFlickr()
     }
     

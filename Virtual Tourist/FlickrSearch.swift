@@ -59,7 +59,6 @@ public class FlickrSearch {
                 return
             }
             
-            pin.photos = nil
             var localArray = [Photo]()
             var i = 0
             
