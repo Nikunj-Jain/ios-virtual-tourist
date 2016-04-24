@@ -65,7 +65,7 @@ public class FlickrSearch {
             
             //Create Photo objects
             for _ in photoArray {
-                let photo = Photo(photo: nil, context: self.sharedContext)
+                let photo = Photo(context: self.sharedContext)
                 photo.belongsToPin = pin
                 localArray.append(photo)
             }
@@ -79,7 +79,12 @@ public class FlickrSearch {
             for photoDictionary in photoArray {
                 let url = photoDictionary[Flickr.Values.extras] as! String
                 let image: NSData = NSData(contentsOfURL: NSURL(string: url)!)!
-                localArray[i].photoData = image
+                let fileName = (url as NSString).lastPathComponent
+                let path = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0]
+                let pathArray = [path, fileName]
+                let fileURL = NSURL.fileURLWithPathComponents(pathArray)!
+                NSFileManager.defaultManager().createFileAtPath(fileURL.path!, contents: image, attributes: nil)
+                localArray[i].photoPath = fileURL.path
                 i += 1
                 performUIUpdatesOnMain() {
                     CoreDataStackManager.sharedInstance().saveContext()

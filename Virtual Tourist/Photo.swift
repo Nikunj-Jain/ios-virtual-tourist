@@ -11,7 +11,7 @@ import CoreData
 
 class Photo: NSManagedObject {
     
-    @NSManaged var photoData: NSData?
+    @NSManaged var photoPath: String?
     @NSManaged var belongsToPin: Pin
     
     //Default init method
@@ -20,10 +20,41 @@ class Photo: NSManagedObject {
     }
     
     //Custom init method with photo object.
-    init (photo: NSData?, context: NSManagedObjectContext) {
+    init (context: NSManagedObjectContext) {
         let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: context)!
         super.init(entity: entity, insertIntoManagedObjectContext: context)
-        
-        photoData = photo
+    }
+    
+    //UIImage variable that returns the UIImage corresponding to the photoPath
+    var image: UIImage? {
+        if photoPath != nil {
+            let fileURL = getFileURL()
+            return UIImage(contentsOfFile: fileURL.path!)
+        }
+        return nil
+    }
+    
+    //This method is called automatically when Core Data is about to delete current object
+    override func prepareForDeletion() {
+        if (photoPath == nil) {
+            return
+        }
+        let fileURL = getFileURL()
+        if NSFileManager.defaultManager().fileExistsAtPath(fileURL.path!) {
+            do {
+                try NSFileManager.defaultManager().removeItemAtPath(fileURL.path!)
+            } catch let error as NSError {
+                print(error.userInfo)
+            }
+        }
+    }
+    
+    //Convenience method to get the fileURL
+    func getFileURL() -> NSURL {
+        let fileName = (photoPath! as NSString).lastPathComponent
+        let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0]
+        let pathArray:[String] = [dirPath, fileName]
+        let fileURL = NSURL.fileURLWithPathComponents(pathArray)
+        return fileURL!
     }
 }

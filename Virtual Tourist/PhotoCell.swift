@@ -14,8 +14,8 @@ class PhotoCell: UICollectionViewCell {
     
     //Configure the image in cell
     func setPictureForCell(picture: Photo) {
-        if let picturesImage = picture.photoData {
-            imageView.image = UIImage(data: picturesImage)
+        if picture.photoPath != nil {
+            imageView.image = picture.image
             self.userInteractionEnabled = true
         } else {
             imageView.image = UIImage(named: "Placeholder")
