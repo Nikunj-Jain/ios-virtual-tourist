@@ -49,6 +49,7 @@ public class FlickrSearch {
                 return
             }
             
+            //No Results found
             if totalResults == "0" {
                 fetchPhotosCompletionHandler(success: false, errorString: Errors.noResults)
             }
@@ -63,14 +64,14 @@ public class FlickrSearch {
             var i = 0
             
             //Create Photo objects
-            for _ in photoArray {
-                let photo = Photo(context: self.sharedContext)
-                photo.belongsToPin = pin
-                localArray.append(photo)
-            }
-            
-            //Store Photo objects
             performUIUpdatesOnMain() {
+                for _ in photoArray {
+                    let photo = Photo(context: self.sharedContext)
+                    photo.belongsToPin = pin
+                    localArray.append(photo)
+                }
+            
+                //Store Photo objects
                 CoreDataStackManager.sharedInstance().saveContext()
             }
             
@@ -83,10 +84,10 @@ public class FlickrSearch {
                 let pathArray = [path, fileName]
                 let fileURL = NSURL.fileURLWithPathComponents(pathArray)!
                 NSFileManager.defaultManager().createFileAtPath(fileURL.path!, contents: image, attributes: nil)
-                localArray[i].photoPath = fileURL.path
-                i += 1
                 performUIUpdatesOnMain() {
+                    localArray[i].photoPath = fileURL.path
                     CoreDataStackManager.sharedInstance().saveContext()
+                    i += 1
                 }
             }
             fetchPhotosCompletionHandler(success: true, errorString: nil)
